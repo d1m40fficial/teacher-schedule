@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Расписание преподавателей УРФУ: поиск по фамилии, пары по дням, аудитории и дистанционные занятия. Данные из Google Таблиц.">
+<meta property="og:title" content="Расписание преподавателей">
+<meta property="og:description" content="Поиск пар по фамилии. Данные из Google Таблиц, без бэкенда.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Расписание преподавателей — УРФУ</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f7f4ee;
+  --sheet: #fffdf8;
+  --ink: #1c1b18;
+  --muted: #6f6a60;
+  --faint: #a39c8f;
+  --line: rgba(28, 27, 24, 0.14);
+  --line-2: rgba(28, 27, 24, 0.28);
+  --accent: #8c2f39;
+  --accent-soft: #f3e4e2;
+  --green: #3f6b4f;
+  --green-soft: #e8f0e7;
+  --amber: #8a5a1f;
+  --amber-soft: #f6ecda;
+  --violet: #55407a;
+  --violet-soft: #ece7f4;
+  --error: #a12828;
+  --error-soft: #f7e6e4;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --sans: 'Inter', system-ui, sans-serif;
+  --serif: 'Fraunces', Georgia, serif;
+  --radius: 2px;
+  --pair-hover: #f1ece2;
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #121210;
+  --sheet: #171714;
+  --ink: #eee9df;
+  --muted: #aaa294;
+  --faint: #726b60;
+  --line: rgba(238, 233, 223, 0.13);
+  --line-2: rgba(238, 233, 223, 0.28);
+  --accent: #d98b78;
+  --accent-soft: #2c1c1b;
+  --green: #8fbf9a;
+  --green-soft: #1a261d;
+  --amber: #d9b276;
+  --amber-soft: #2a2114;
+  --violet: #b9a4dd;
+  --violet-soft: #211b2d;
+  --error: #e09080;
+  --error-soft: #2c1917;
+  --pair-hover: #1e1e1a;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  padding: 26px 20px 48px;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.25;
+  background-image: radial-gradient(rgba(28, 27, 24, 0.18) 0.5px, transparent 0.5px);
+  background-size: 5px 5px;
+}
+[data-theme='dark'] body::before {
+  background-image: radial-gradient(rgba(238, 233, 223, 0.2) 0.5px, transparent 0.5px);
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+header {
+  position: relative;
+  padding: 18px 0 24px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 4px;
+}
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.kicker::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: var(--accent);
+}
+header h1 {
+  margin-top: 14px;
+  font-family: var(--serif);
+  font-size: clamp(2rem, 5vw, 3.35rem);
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+header p {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.repo {
+  position: absolute;
+  top: 22px;
+  right: 0;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-2);
+  padding-bottom: 2px;
+}
+.repo:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 52px;
+  right: 0;
+  width: 38px;
+  height: 22px;
+  padding: 2px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.theme-toggle .knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--bg);
+  transition: transform 0.25s;
+}
+[data-theme='dark'] .theme-toggle .knob {
+  transform: translateX(16px);
+}
+
+.search-row {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  margin: 30px 0 22px;
+  border-bottom: 1px solid var(--line-2);
+}
+.search-wrap {
+  flex: 1;
+  position: relative;
+}
+.search-wrap svg {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--accent);
+  pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  padding: 10px 14px 12px 25px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  outline: none;
+}
+.search-input::placeholder {
+  color: var(--faint);
+  font-family: var(--sans);
+  font-size: 0.86rem;
+}
+.search-input:focus {
+  box-shadow: none;
+}
+.search-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 0;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.search-btn:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+.search-btn.loading .spinner {
+  display: inline-block;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 26px;
+  overflow-x: auto;
+  padding-bottom: 0;
+  border-bottom: 1px solid var(--line);
+}
+.tab {
+  position: relative;
+  padding: 8px 0 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.tab:hover {
+  color: var(--ink);
+}
+.tab.active {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.tab.tab-custom {
+  border: 0;
+  border-bottom: 1px dashed var(--line-2);
+}
+.tab.tab-custom.active {
+  border-bottom-style: solid;
+}
+.tab-remove {
+  display: inline-block;
+  margin-left: 7px;
+  width: 14px;
+  height: 14px;
+  line-height: 12px;
+  text-align: center;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  font-size: 9px;
+  color: var(--muted);
+  vertical-align: middle;
+}
+.tab-remove:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.day-card {
+  background: transparent;
+  border: 0;
+  border-top: 2px solid var(--ink);
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 30px;
+  overflow: visible;
+}
+.day-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 0 10px;
+  border-bottom: 1px solid var(--line-2);
+  font-family: var(--serif);
+  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+.day-header .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 0;
+  background: var(--accent);
+  flex-shrink: 0;
+  align-self: center;
+}
+.day-header .date {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 14px 0;
+  align-items: start;
+  border-bottom: 1px dotted var(--line-2);
+  transition: background 0.12s;
+}
+.pair:last-child {
+  border-bottom: 0;
+}
+.pair:hover {
+  background: var(--pair-hover);
+}
+.pair-num {
+  justify-self: start;
+  padding: 3px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.pair-info {
+  min-width: 0;
+}
+.pair-subject {
+  margin-bottom: 5px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.35;
+  word-wrap: break-word;
+}
+.pair-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 16px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+.pair-meta span {
+  white-space: nowrap;
+}
+.badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+  justify-content: flex-end;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  font-family: var(--mono);
+  font-size: 0.54rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge-time {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: rgba(140, 47, 57, 0.25);
+}
+.badge-room {
+  background: var(--green-soft);
+  color: var(--green);
+  border-color: rgba(63, 107, 79, 0.25);
+}
+.badge-distant {
+  background: var(--amber-soft);
+  color: var(--amber);
+  border-color: rgba(138, 90, 31, 0.25);
+}
+.badge-practice {
+  background: var(--violet-soft);
+  color: var(--violet);
+  border-color: rgba(85, 64, 122, 0.25);
+}
+
+.empty-state {
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+.empty-state .icon {
+  margin-bottom: 10px;
+  font-size: 1.6rem;
+  color: var(--accent);
+}
+.status-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 22px 0;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  text-align: center;
+}
+.error-card {
+  padding: 14px 16px;
+  border: 1px solid var(--error);
+  border-radius: 0;
+  background: var(--error-soft);
+  color: var(--error);
+  font-size: 0.78rem;
+  margin-bottom: 10px;
+}
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 44px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.foot a {
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-2);
+}
+
+@media (max-width: 700px) {
+  body {
+    padding: 18px 14px 36px;
+  }
+  .repo {
+    display: none;
+  }
+  .theme-toggle {
+    top: 18px;
+  }
+  header h1 {
+    margin-top: 18px;
+  }
+  .pair {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .badges {
+    justify-content: flex-start;
+  }
+  .day-header {
+    flex-wrap: wrap;
+  }
+  .day-header .date {
+    margin-left: 0;
+    width: 100%;
+  }
+  .search-row {
+    flex-direction: column;
+    border-bottom: 0;
+  }
+  .search-wrap {
+    border-bottom: 1px solid var(--line-2);
+  }
+  .search-btn {
+    justify-content: center;
+    padding: 12px;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="kicker">УРФУ · расписание · учебный год</div>
+    <a class="repo" href="https://github.com/d1m40fficial/teacher-schedule" target="_blank" rel="noopener">GitHub ↗</a>
+    <h1>Расписание<br>преподавателей</h1>
+    <p id="headerPeriod">Загрузка данных...</p>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Переключить тему">
+      <div class="knob"><span class="theme-icon">&#9790;</span></div>
+    </button>
+  </header>
+
+  <div class="search-row">
+    <div class="search-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.2-5.2m0 0A7.5 7.5 0 1 0 5.8 5.8a7.5 7.5 0 0 0 10 10Z"/>
+      </svg>
+      <input id="searchInput" class="search-input" type="text" placeholder="Введите фамилию преподавателя..." />
+    </div>
+    <button id="searchBtn" class="search-btn" onclick="addTeacher()">
+      <span class="spinner"></span>Показать
+    </button>
+  </div>
+
+  <div id="status" class="status-line" style="display:none;"></div>
+
+  <div id="tabs" class="tabs"></div>
+  <div id="content"><div class="empty-state"><div class="icon">&#8987;</div><div>Загрузка расписания из Google Таблиц...</div></div></div>
+</div>
+
+<footer class="foot">
+  <span>источник: Google Sheets · CSV</span>
+  <a href="https://github.com/d1m40fficial/teacher-schedule" target="_blank" rel="noopener">исходники</a>
+  <span>без бэкенда · статический хостинг</span>
+</footer>
+
+<script>
+// ===== Настройки =====
+var SHEET_ID = '1X6YF54l1rgP7MFfkTa1b_L6f4f3aWuADZwF8wwTWKK4';
+var SHEET_NAMES = ['1 курс', '2 курс', '3 курс', '4 курс'];
+// Google Sheets отдаёт каждый лист как CSV через gviz — без SheetJS и без бинарного xlsx.
+
+
+// ===== Константы (как в ноутбуке) =====
+var DAYS = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+var DAY_BLOCKS = {
+  'Понедельник': [2, 13],
+  'Вторник': [15, 26],
+  'Среда': [28, 39],
+  'Четверг': [41, 52],
+  'Пятница': [54, 65],
+  'Суббота': [67, 78]
+};
+var DAY_ORDER = { 'Понедельник':0, 'Вторник':1, 'Среда':2, 'Четверг':3, 'Пятница':4, 'Суббота':5 };
+
+var PAIR_TIMES_MON_FRI = {
+  1:'08:30–10:00',2:'10:10–11:40',3:'12:20–13:50',4:'14:10–15:40',5:'15:50–17:20',6:'17:30–19:00'
+};
+var PAIR_TIMES_SAT = {
+  1:'08:30–10:00',2:'10:10–11:40',3:'11:50–13:20',4:'13:30–15:00',5:'15:10–16:40'
+};
+
+var allRows = [];          // полное расписание (все преподаватели)
+var loadedTeachers = [];   // список фамилий, которые есть в данных
+var activeTeachers = [];   // открытые вкладки
+var activeTab = null;
+
+// ===== CSV парсер =====
+function parseCSV(text) {
+  var rows = [], row = [], field = '', i = 0, inQuotes = false;
+  for (i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i+1] === '"') { field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += ch;
+      }
+    } else {
+      if (ch === '"') { inQuotes = true; }
+      else if (ch === ',') { row.push(field); field = ''; }
+      else if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (ch === '\r') { /* skip */ }
+      else { field += ch; }
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  // убрать полностью пустые строки в конце
+  while (rows.length && rows[rows.length-1].every(function(c){ return (c||'').trim()===''; })) rows.pop();
+  return rows;
+}
+
+function norm(s) { return (s||'').trim().toLowerCase().replace(/\s+/g, ' '); }
+
+var RUS_DAYS_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+function formatDayDate(d) {
+  // d — JS Date (из ячейки-даты xlsx). Возвращает ["Понедельник","31.08"]
+  var wd = d.getDay(); // 0=Вс
+  var r = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+  var dayName = r[wd];
+  var date = pad2(d.getDate()) + '.' + pad2(d.getMonth()+1);
+  return [dayName, date];
+}
+
+function parseDayAndDate(cellA) {
+  if (cellA instanceof Date) {
+    var fd = formatDayDate(cellA);
+    return [fd[0], fd[1]];
+  }
+  var raw = (cellA||'').trim();
+  if (!raw) return [null, null];
+  var parts = raw.split(/[ \t]+/);
+  var day = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  var date = parts.length > 1 ? parts.slice(1).join(' ').trim() : '—';
+  if (DAY_ORDER[day] === undefined) return [null, null];
+  return [day, date || '—'];
+}
+
+function pairTime(dayName, pairNum) {
+  if (dayName === 'Суббота') return PAIR_TIMES_SAT[pairNum] || '—';
+  return PAIR_TIMES_MON_FRI[pairNum] || '—';
+}
+
+function parseCabinet(value, subject) {
+  var raw = (value||'').trim();
+  var v = norm(raw).replace(/\./g, '');
+  var subj = norm(subject);
+  var DIST = ['эл','эл.','дист','дист.','дистанционно','онлайн','online'];
+  if (DIST.indexOf(v) !== -1) return 'Дистанционно';
+  if (!raw && subj.indexOf('практик') !== -1) return 'Практика';
+  return raw || '—';
+}
+
+function buildGroupMap(header) {
+  var groups = [];
+  var c = 2, n = header.length;
+  while (c < n) {
+    var cell = (header[c]||'').trim();
+    if (cell) {
+      var cab = (c+3 < n) ? c+3 : null;
+      var label = cell;
+      if (label.indexOf('Расписание занятий') === 0) {
+        var tail = label.trim().split(/\s+/).pop();
+        if (tail) label = tail;
+      }
+      groups.push({ group: label, subjectCols: [c,c+1,c+2],
+        teacherCols: (cab!==null ? [c,c+1,c+2,cab] : [c,c+1,c+2]), cabCol: cab });
+      c += 4;
+    } else {
+      c += 1;
+    }
+  }
+  return groups;
+}
+
+function getFirstNonempty(row, cols) {
+  for (var i=0;i<cols.length;i++) {
+    var c = cols[i];
+    if (c < row.length && row[c] && (row[c]+'').trim()) return [(row[c]+'').trim(), c];
+  }
+  return ['', null];
+}
+
+// ===== Парсинг полного расписания (аналог parse_full_schedule) =====
+// course — название листа (как ws.title в ноутбуке)
+function buildFullSchedule(data, course) {
+  var headerIndex = -1;
+  for (var h = 0; h < Math.min(data.length, 6); h++) {
+    var probe = data[h] || [];
+    if ((probe[1] || '').trim() === '№' || (probe[1] || '').trim() === 'N') { headerIndex = h; break; }
+  }
+  var header = data[headerIndex >= 0 ? headerIndex : 0] || [];
+  var groups = buildGroupMap(header);
+  if (!groups.length) return [];
+
+  var results = [];
+  var seen = {};
+  var currentDay = null;
+  var currentDate = '—';
+
+  for (var r = 0; r < data.length; r++) {
+    var row = data[r] || [];
+    var parsed = parseDayAndDate(row[0] === undefined ? '' : row[0]);
+    if (parsed[0]) {
+      currentDay = parsed[0];
+      currentDate = parsed[1] || '—';
+      continue;
+    }
+
+    var pairRaw = (row[1] === undefined ? '' : row[1] + '').trim();
+    if (!currentDay || !/^\d+$/.test(pairRaw)) continue;
+
+    var pairNum = parseInt(pairRaw, 10);
+    var teacherRow = data[r + 1] || [];
+
+    groups.forEach(function(gb) {
+      var subject = getFirstNonempty(row, gb.subjectCols)[0];
+      var teacher = getFirstNonempty(teacherRow, gb.teacherCols)[0];
+      if (!subject && !teacher) return;
+
+      var cabRaw = '';
+      if (gb.cabCol !== null && gb.cabCol < row.length) cabRaw = (row[gb.cabCol] === undefined ? '' : row[gb.cabCol] + '').trim();
+      var cabinet = parseCabinet(cabRaw, subject);
+
+      var item = {
+        'День': currentDay, 'Дата': currentDate, 'Пара': pairNum,
+        'Время': pairTime(currentDay, pairNum),
+        'Курс': course || '',
+        'Группа': gb.group,
+        'Предмет': subject || '—',
+        'Кабинет': cabinet,
+        'Преподаватель': teacher || '—'
+      };
+      var key = [item['День'], item['Дата'], item['Пара'], item['Группа'], item['Предмет'], item['Кабинет'], item['Преподаватель']].join('|');
+      if (!seen[key]) { seen[key] = true; results.push(item); }
+    });
+
+    r += 1;
+  }
+
+  return results;
+}
+
+// ===== Поиск пар по фамилии (аналог parse_teacher_schedule) =====
+function scheduleForTeacher(surname) {
+  var q = norm(surname);
+  if (!q) return [];
+  return allRows.filter(function(r) {
+    var t = norm(r['Преподаватель']);
+    return t.indexOf(q.split(/\s+/)[0]) !== -1;
+  }).sort(function(a,b) {
+    if (DAY_ORDER[a['День']] !== DAY_ORDER[b['День']]) return DAY_ORDER[a['День']] - DAY_ORDER[b['День']];
+    if (a['Дата'] !== b['Дата']) return a['Дата'] < b['Дата'] ? -1 : 1;
+    if (a['Пара'] !== b['Пара']) return a['Пара'] - b['Пара'];
+    return a['Группа'] < b['Группа'] ? -1 : 1;
+  });
+}
+
+// ===== Загрузка =====
+// Данные берутся из публичной Google-таблицы (xlsx, вся книга со всеми листами).
+// ВАЖНО: браузеры (Chrome/Firefox/Edge) блокируют fetch() из страниц,
+// открытых как file://. Страницу нужно отдавать по http:// (локальный сервер).
+function sheetUrl(name) {
+  return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(name);
+}
+
+function loadSchedule() {
+  var btn = document.getElementById('searchBtn');
+  btn.classList.add('loading');
+
+  var isFile = (window.location && window.location.protocol === 'file:');
+  if (isFile) {
+    showServerHint();
+    btn.classList.remove('loading');
+    return;
+  }
+
+  Promise.all(SHEET_NAMES.map(function(name) {
+    return fetch(sheetUrl(name), { mode: 'cors' })
+      .then(function(resp) {
+        if (!resp.ok) throw new Error('Лист «' + name + '»: HTTP ' + resp.status);
+        return resp.text();
+      })
+      .then(function(text) {
+        return { name: name, data: parseCSV(text) };
+      });
+  }))
+    .then(function(sheets) {
+      allRows = [];
+      var seenAll = {};
+
+      sheets.forEach(function(sheet) {
+        if (!sheet.data || sheet.data.length < 4) return;
+        buildFullSchedule(sheet.data, sheet.name).forEach(function(r) {
+          var key = [r['День'],r['Дата'],r['Пара'],r['Группа'],r['Предмет'],r['Кабинет'],r['Преподаватель'],r['Курс']].join('|');
+          if (!seenAll[key]) { seenAll[key] = true; allRows.push(r); }
+        });
+      });
+
+      loadedTeachers = [];
+      var seenT = {};
+      allRows.forEach(function(r) {
+        var tn = norm(r['Преподаватель']);
+        if (!tn || tn === '—') return;
+        var surname = (r['Преподаватель']+'').trim().split(/\s+/)[0];
+        if (!seenT[surname.toLowerCase()]) { seenT[surname.toLowerCase()] = true; loadedTeachers.push(surname); }
+      });
+      loadedTeachers.sort(function(a,b){ return a.localeCompare(b, 'ru'); });
+
+      document.getElementById('headerPeriod').textContent =
+        '1–4 курс · ' + loadedTeachers.length + ' преподавателей · данные из Google Таблиц';
+
+      status('Расписание загружено. Введите фамилию или нажмите на вкладку.', false, false);
+      renderTabs();
+      renderContent();
+    })
+    .catch(function(err) {
+      status('Не удалось загрузить расписание из Google Таблиц. Проверьте интернет-соединение и доступ к таблице.', true);
+      console.error(err);
+    })
+    .finally(function() {
+      btn.classList.remove('loading');
+    });
+}
+
+// Показывает инструкцию, как запустить локальный сервер
+function showServerHint() {
+  document.getElementById('content').innerHTML =
+    '<div class="error-card">'
+    + '<strong>Не удалось загрузить данные.</strong><br><br>'
+    + 'Страница открыта как <code>file://</code>, а браузер блокирует обращение к Google-таблицам из локальных файлов. '
+    + 'Запустите локальный сервер в папке с файлом schedule.html и откройте его через http://<br><br>'
+    + 'В командной строке (PowerShell) в папке проекта выполните:<br>'
+    + '<code>python -m http.server 8000</code><br><br>'
+    + 'Затем откройте в браузере:<br>'
+    + '<code>http://localhost:8000/schedule.html</code>'
+    + '</div>';
+}
+
+
+function status(msg, isError, asHtml) {
+  var el = document.getElementById('status');
+  el.style.display = 'flex';
+  if (isError) {
+    el.style.color = 'var(--error)';
+    el.textContent = msg;
+  } else if (asHtml) {
+    el.style.color = 'var(--text)';
+    el.style.flexWrap = 'wrap';
+    el.innerHTML = msg;
+  } else {
+    el.style.color = 'var(--loading)';
+    el.textContent = msg;
+  }
+}
+
+// ===== Рендер =====
+function roomBadge(room) {
+  var r = (room||'').trim();
+  if (r === 'Дистанционно') return '<span class="badge badge-distant">Дистанционно</span>';
+  if (r === 'Практика') return '<span class="badge badge-practice">Практика</span>';
+  return '<span class="badge badge-room">каб. ' + r + '</span>';
+}
+
+function renderDays(items) {
+  if (!items || !items.length) {
+    return '<div class="empty-state"><div class="icon">&#8212;</div>Нет занятий на эту неделю</div>';
+  }
+  // группировка по дням/датам
+  var byDay = {};
+  items.forEach(function(r) {
+    var key = r['День'] + '|' + r['Дата'];
+    if (!byDay[key]) byDay[key] = [];
+    byDay[key].push(r);
+  });
+  var keys = Object.keys(byDay).sort(function(a,b){
+    var da = a.split('|')[0], db = b.split('|')[0];
+    if (DAY_ORDER[da] !== DAY_ORDER[db]) return DAY_ORDER[da]-DAY_ORDER[db];
+    var aa = a.split('|')[1], bb = b.split('|')[1];
+    if (aa !== bb) return aa < bb ? -1 : 1;
+    return 0;
+  });
+  return keys.map(function(k) {
+    var parts = k.split('|');
+    return '<div class="day-card">'
+      + '<div class="day-header"><span class="dot"></span>' + parts[0] + '<span class="date">' + parts[1] + '</span></div>'
+      + byDay[k].map(function(p) {
+          return '<div class="pair">'
+            + '<div class="pair-num">Пара ' + p['Пара'] + '</div>'
+            + '<div class="pair-info">'
+            + '<div class="pair-subject">' + p['Предмет'] + '</div>'
+            + '<div class="pair-meta">'
+            + (p['Курс'] ? '<span>' + p['Курс'] + '</span>' : '')
+            + '<span>' + p['Группа'] + '</span>'
+            + '</div>'
+            + '</div>'
+            + '<div class="badges">'
+            + '<span class="badge badge-time">' + p['Время'] + '</span>'
+            + roomBadge(p['Кабинет'])
+            + '</div>'
+            + '</div>';
+        }).join('')
+      + '</div>';
+  }).join('');
+}
+
+function renderTabs() {
+  var el = document.getElementById('tabs');
+  el.innerHTML = activeTeachers.map(function(name) {
+    var isDefault = DEFAULT_TEACHERS.indexOf(name) !== -1;
+    var removeBtn = !isDefault
+      ? '<span class="tab-remove" onclick="event.stopPropagation();removeTeacher(this.parentElement.dataset.teacher)">&times;</span>'
+      : '';
+    return '<button class="tab ' + (name === activeTab ? 'active ' : '') + (!isDefault ? 'tab-custom' : '')
+      + '" data-teacher="' + name.replace(/"/g,'&quot;') + '" onclick="selectTab(this.dataset.teacher)">'
+      + name.replace(/"/g,'&quot;') + removeBtn + '</button>';
+  }).join('');
+}
+
+function renderContent() {
+  var el = document.getElementById('content');
+  var items = scheduleForTeacher(activeTab);
+  el.innerHTML = '<div class="teacher-section active">' + renderDays(items) + '</div>';
+}
+
+function selectTab(name) {
+  activeTab = name;
+  renderTabs();
+  renderContent();
+}
+
+function addTeacher() {
+  if (allRows.length === 0) { status('Сначала дождитесь загрузки данных.', true); return; }
+  var input = document.getElementById('searchInput');
+  var name = input.value.trim();
+  if (!name) return;
+  // нормализуем: если подходит существующий преподаватель из списка — используем его фамилию
+  var key = norm(name);
+  var found = null;
+  loadedTeachers.forEach(function(t) {
+    if (!found && norm(t) === key.split(/\s+/)[0]) found = t;
+  });
+  var displayName = found || name;
+
+  if (activeTeachers.indexOf(displayName) === -1) activeTeachers.push(displayName);
+  activeTab = displayName;
+  input.value = '';
+  renderTabs();
+  renderContent();
+}
+
+function useTeacher(name) {
+  if (activeTeachers.indexOf(name) === -1) activeTeachers.push(name);
+  activeTab = name;
+  renderTabs();
+  renderContent();
+}
+
+function removeTeacher(name) {
+  activeTeachers = activeTeachers.filter(function(t){ return t !== name; });
+  if (activeTab === name) {
+    activeTab = activeTeachers.length ? activeTeachers[0] : null;
+  }
+  renderTabs();
+  renderContent();
+}
+
+function toggleTheme() {
+  var html = document.documentElement;
+  var icon = document.querySelector('.theme-icon');
+  if (html.dataset.theme === 'light') {
+    html.dataset.theme = 'dark';
+    icon.innerHTML = '&#9728;';
+  } else {
+    html.dataset.theme = 'light';
+    icon.innerHTML = '&#9790;';
+  }
+}
+
+var DEFAULT_TEACHERS = [];
+
+document.getElementById('searchInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addTeacher();
+});
+
+DEFAULT_TEACHERS.push('Белоусов');
+activeTeachers.push('Белоусов');
+activeTab = 'Белоусов';
+
+loadSchedule();
+renderTabs();
+renderContent();
+</script>
+</body>
+</html>
