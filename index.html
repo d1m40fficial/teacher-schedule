@@ -827,8 +827,13 @@ function loadSchedule() {
       });
       loadedTeachers.sort(function(a,b){ return a.localeCompare(b, 'ru'); });
 
+      var teacherWord = loadedTeachers.length % 10 === 1 && loadedTeachers.length % 100 !== 11
+        ? 'преподаватель'
+        : (loadedTeachers.length % 10 >= 2 && loadedTeachers.length % 10 <= 4 && (loadedTeachers.length % 100 < 10 || loadedTeachers.length % 100 >= 20))
+          ? 'преподавателя'
+          : 'преподавателей';
       document.getElementById('headerPeriod').textContent =
-        '1–4 курс · ' + loadedTeachers.length + ' преподавателей · данные из Google Таблиц';
+        '1–4 курс · ' + loadedTeachers.length + ' ' + teacherWord + ' · данные из Google Таблиц';
 
       status('Расписание загружено. Введите фамилию или нажмите на вкладку.', false, false);
       renderTabs();
