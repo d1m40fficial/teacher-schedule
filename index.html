@@ -803,9 +803,16 @@ function loadSchedule() {
       })
       .then(function(text) {
         return { name: name, data: parseCSV(text) };
+      })
+      .catch(function(err) {
+        console.warn('Не удалось загрузить лист', name, err);
+        return null;
       });
   }))
     .then(function(sheets) {
+      var received = sheets.filter(function(sheet) { return Boolean(sheet); });
+      if (!received.length) throw new Error('Ни один лист не загрузился');
+      sheets = received;
       allRows = [];
       var seenAll = {};
 
@@ -833,7 +840,8 @@ function loadSchedule() {
           ? 'преподавателя'
           : 'преподавателей';
       document.getElementById('headerPeriod').textContent =
-        '1–4 курс · ' + loadedTeachers.length + ' ' + teacherWord + ' · данные из Google Таблиц';
+        '1–4 курс · ' + loadedTeachers.length + ' ' + teacherWord + ' · данные из Google Таблиц' +
+        (sheets.length < SHEET_NAMES.length ? ' · часть листов недоступна' : '');
 
       status('Расписание загружено. Введите фамилию или нажмите на вкладку.', false, false);
       renderTabs();
