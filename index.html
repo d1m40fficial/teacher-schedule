@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Расписание преподавателей УРФУ: поиск по фамилии, пары по дням, аудитории и дистанционные занятия. Данные из Google Таблиц.">
+<meta name="description" content="Расписание преподавателей: поиск по фамилии, пары по дням, аудитории и дистанционные занятия. Данные из Google Таблиц.">
 <meta property="og:title" content="Расписание преподавателей">
 <meta property="og:description" content="Поиск пар по фамилии. Данные из Google Таблиц, без бэкенда.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<title>Расписание преподавателей — УРФУ</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Расписание преподавателей</title>
 <style>
 :root {
   color-scheme: light;
@@ -32,8 +32,8 @@
   --error: #a12828;
   --error-soft: #f7e6e4;
   --mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --sans: 'Inter', system-ui, sans-serif;
-  --serif: 'Fraunces', Georgia, serif;
+  --sans: 'Manrope', 'Inter', system-ui, sans-serif;
+  --display: 'Manrope', 'Inter', system-ui, sans-serif;
   --radius: 2px;
   --pair-hover: #f1ece2;
 }
@@ -68,7 +68,7 @@ body {
   color: var(--ink);
   font-family: var(--sans);
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   padding: 26px 20px 48px;
 }
@@ -103,7 +103,7 @@ header {
   align-items: center;
   gap: 10px;
   font-family: var(--mono);
-  font-size: 0.56rem;
+  font-size: 0.6rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--accent);
@@ -116,16 +116,16 @@ header {
 }
 header h1 {
   margin-top: 14px;
-  font-family: var(--serif);
-  font-size: clamp(2rem, 5vw, 3.35rem);
-  font-weight: 300;
-  letter-spacing: -0.035em;
-  line-height: 1.02;
+  font-family: var(--display);
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
 }
 header p {
   margin-top: 10px;
   font-family: var(--mono);
-  font-size: 0.62rem;
+  font-size: 0.66rem;
   letter-spacing: 0.05em;
   color: var(--muted);
 }
@@ -134,7 +134,7 @@ header p {
   top: 22px;
   right: 0;
   font-family: var(--mono);
-  font-size: 0.56rem;
+  font-size: 0.6rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -205,7 +205,7 @@ header p {
   border-radius: 0;
   background: transparent;
   color: var(--ink);
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 1.15rem;
   outline: none;
 }
@@ -227,7 +227,7 @@ header p {
   background: var(--accent);
   color: #fff;
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.64rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
@@ -275,7 +275,7 @@ header p {
   background: transparent;
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.64rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -314,6 +314,74 @@ header p {
   color: var(--accent);
 }
 
+.teacher-panel {
+  margin: -4px 0 24px;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--line);
+}
+.teacher-panel__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.teacher-panel__head b {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent);
+}
+.teacher-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 174px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+.teacher-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.teacher-chip small {
+  font-family: var(--mono);
+  font-size: 0.54rem;
+  color: var(--faint);
+}
+.teacher-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.teacher-chip.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.teacher-chip.is-active small {
+  color: var(--accent);
+  opacity: 0.65;
+}
+
 .day-card {
   background: transparent;
   border: 0;
@@ -329,10 +397,10 @@ header p {
   gap: 12px;
   padding: 14px 0 10px;
   border-bottom: 1px solid var(--line-2);
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: clamp(1.2rem, 2.4vw, 1.55rem);
-  font-weight: 300;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .day-header .dot {
   width: 7px;
@@ -345,7 +413,7 @@ header p {
 .day-header .date {
   margin-left: auto;
   font-family: var(--mono);
-  font-size: 0.6rem;
+  font-size: 0.64rem;
   font-weight: 400;
   letter-spacing: 0.08em;
   color: var(--muted);
@@ -374,7 +442,7 @@ header p {
   background: transparent;
   color: var(--accent);
   font-family: var(--mono);
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
@@ -393,7 +461,7 @@ header p {
   flex-wrap: wrap;
   gap: 5px 16px;
   font-family: var(--mono);
-  font-size: 0.62rem;
+  font-size: 0.66rem;
   color: var(--muted);
 }
 .pair-meta span {
@@ -414,7 +482,7 @@ header p {
   border: 1px solid transparent;
   border-radius: 0;
   font-family: var(--mono);
-  font-size: 0.54rem;
+  font-size: 0.58rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -460,7 +528,7 @@ header p {
   gap: 10px;
   margin: 22px 0;
   font-family: var(--mono);
-  font-size: 0.62rem;
+  font-size: 0.66rem;
   letter-spacing: 0.04em;
   color: var(--muted);
   text-align: center;
@@ -471,7 +539,7 @@ header p {
   border-radius: 0;
   background: var(--error-soft);
   color: var(--error);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   margin-bottom: 10px;
 }
 .foot {
@@ -482,7 +550,7 @@ header p {
   padding-top: 14px;
   border-top: 1px solid var(--line);
   font-family: var(--mono);
-  font-size: 0.52rem;
+  font-size: 0.56rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--faint);
@@ -539,7 +607,7 @@ header p {
 
 <div class="container">
   <header>
-    <div class="kicker">УРФУ · расписание · учебный год</div>
+    <div class="kicker">расписание · учебный год · 1–4 курс</div>
     <a class="repo" href="https://github.com/d1m40fficial/teacher-schedule" target="_blank" rel="noopener">GitHub ↗</a>
     <h1>Расписание<br>преподавателей</h1>
     <p id="headerPeriod">Загрузка данных...</p>
@@ -561,6 +629,15 @@ header p {
   </div>
 
   <div id="status" class="status-line" style="display:none;"></div>
+
+  <div id="teacherPanel" class="teacher-panel" hidden>
+    <div class="teacher-panel__head">
+      <span>преподаватели</span>
+      <b id="teacherCount"></b>
+      <span>нажмите, чтобы открыть</span>
+    </div>
+    <div id="teacherList" class="teacher-list"></div>
+  </div>
 
   <div id="tabs" class="tabs"></div>
   <div id="content"><div class="empty-state"><div class="icon">&#8987;</div><div>Загрузка расписания из Google Таблиц...</div></div></div>
@@ -600,6 +677,8 @@ var PAIR_TIMES_SAT = {
 
 var allRows = [];          // полное расписание (все преподаватели)
 var loadedTeachers = [];   // список фамилий, которые есть в данных
+var teacherCounts = {};    // фамилия → число пар
+var weekRange = '';        // «09.11–14.11» из заголовка листа
 var activeTeachers = [];   // открытые вкладки
 var activeTab = null;
 
@@ -630,6 +709,24 @@ function parseCSV(text) {
 }
 
 function norm(s) { return (s||'').trim().toLowerCase().replace(/\s+/g, ' '); }
+
+// Преподаватель — это фамилия, при желании с инициалами: «Иванов», «Иванов И.И.».
+// В таблице в строку преподавателя иногда попадает тема занятия («Разговоры о важном»,
+// «Биология»), поэтому такие значения отбрасываем. Однословные значения принимаем,
+// только если эта фамилия где-то в таблице указана с инициалами.
+var TEACHER_NAME = /^[А-ЯЁ][а-яё-]+(?:\s+[А-ЯЁ]\.\s*[А-ЯЁ]?\.?)?$/;
+function teacherInfo(value) {
+  var v = (value||'').trim().replace(/\s+/g, ' ');
+  if (!v || !TEACHER_NAME.test(v)) return null;
+  var parts = v.split(' ');
+  return { surname: parts[0], hasInitials: parts.length > 1 };
+}
+function isTeacher(value, subjects, surnames) {
+  var info = teacherInfo(value);
+  if (!info) return false;
+  if (info.hasInitials) return true;
+  return Boolean(surnames && surnames[info.surname.toLowerCase()]) && !(subjects && subjects[norm(value)]);
+}
 
 var RUS_DAYS_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 function pad2(n) { return n < 10 ? '0' + n : '' + n; }
@@ -701,15 +798,40 @@ function getFirstNonempty(row, cols) {
   return ['', null];
 }
 
-// ===== Парсинг полного расписания (аналог parse_full_schedule) =====
-// course — название листа (как ws.title в ноутбуке)
-function buildFullSchedule(data, course) {
-  var headerIndex = -1;
+function headerRow(data) {
   for (var h = 0; h < Math.min(data.length, 6); h++) {
     var probe = data[h] || [];
-    if ((probe[1] || '').trim() === '№' || (probe[1] || '').trim() === 'N') { headerIndex = h; break; }
+    if ((probe[1] || '').trim() === '№' || (probe[1] || '').trim() === 'N') return h;
   }
-  var header = data[headerIndex >= 0 ? headerIndex : 0] || [];
+  return 0;
+}
+
+// Собираем словарь предметов и фамилий (по записям с инициалами), чтобы
+// отличить преподавателя от темы занятия в однословных ячейках.
+function collectVocabulary(data, subjects, surnames) {
+  var header = data[headerRow(data)] || [];
+  var groups = buildGroupMap(header);
+  if (!groups.length) return;
+  for (var r = 0; r < data.length; r++) {
+    var row = data[r] || [];
+    var pairRaw = (row[1] === undefined ? '' : row[1] + '').trim();
+    if (!/^\d+$/.test(pairRaw)) continue;
+    var teacherRow = data[r + 1] || [];
+    groups.forEach(function(gb) {
+      var subject = getFirstNonempty(row, gb.subjectCols)[0];
+      if (subject) subjects[norm(subject)] = true;
+      var info = teacherInfo(getFirstNonempty(teacherRow, gb.teacherCols)[0]);
+      if (info && info.hasInitials) surnames[info.surname.toLowerCase()] = true;
+    });
+    r += 1;
+  }
+}
+
+// ===== Парсинг полного расписания (аналог parse_full_schedule) =====
+// course — название листа (как ws.title в ноутбуке)
+function buildFullSchedule(data, course, subjects, surnames) {
+  var headerIndex = headerRow(data);
+  var header = data[headerIndex] || [];
   var groups = buildGroupMap(header);
   if (!groups.length) return [];
 
@@ -735,7 +857,9 @@ function buildFullSchedule(data, course) {
 
     groups.forEach(function(gb) {
       var subject = getFirstNonempty(row, gb.subjectCols)[0];
-      var teacher = getFirstNonempty(teacherRow, gb.teacherCols)[0];
+      var teacherRaw = getFirstNonempty(teacherRow, gb.teacherCols)[0];
+      if (!subject && !teacherRaw) return;
+      var teacher = isTeacher(teacherRaw, subjects, surnames) ? teacherRaw : '';
       if (!subject && !teacher) return;
 
       var cabRaw = '';
@@ -815,10 +939,21 @@ function loadSchedule() {
       sheets = received;
       allRows = [];
       var seenAll = {};
+      teacherCounts = {};
+      weekRange = '';
+
+      var subjects = {};
+      var initialledSurnames = {};
+      sheets.forEach(function(sheet) {
+        if (sheet.data && sheet.data.length >= 4) collectVocabulary(sheet.data, subjects, initialledSurnames);
+      });
 
       sheets.forEach(function(sheet) {
         if (!sheet.data || sheet.data.length < 4) return;
-        buildFullSchedule(sheet.data, sheet.name).forEach(function(r) {
+        var head = (sheet.data[0] && sheet.data[0][2]) || '';
+        var range = head.match(/(\d{2}\.\d{2})\.\d{4}\s*[-–]\s*(\d{2}\.\d{2})\.\d{4}/);
+        if (range && !weekRange) weekRange = range[1] + '–' + range[2];
+        buildFullSchedule(sheet.data, sheet.name, subjects, initialledSurnames).forEach(function(r) {
           var key = [r['День'],r['Дата'],r['Пара'],r['Группа'],r['Предмет'],r['Кабинет'],r['Преподаватель'],r['Курс']].join('|');
           if (!seenAll[key]) { seenAll[key] = true; allRows.push(r); }
         });
@@ -827,10 +962,16 @@ function loadSchedule() {
       loadedTeachers = [];
       var seenT = {};
       allRows.forEach(function(r) {
-        var tn = norm(r['Преподаватель']);
-        if (!tn || tn === '—') return;
-        var surname = (r['Преподаватель']+'').trim().split(/\s+/)[0];
-        if (!seenT[surname.toLowerCase()]) { seenT[surname.toLowerCase()] = true; loadedTeachers.push(surname); }
+        var raw = (r['Преподаватель'] || '').trim();
+        if (!raw || raw === '—') return;
+        var surname = raw.split(/\s+/)[0];
+        var key = surname.toLowerCase();
+        if (!seenT[key]) {
+          seenT[key] = true;
+          loadedTeachers.push(surname);
+          teacherCounts[surname] = 0;
+        }
+        teacherCounts[surname] = (teacherCounts[surname] || 0) + 1;
       });
       loadedTeachers.sort(function(a,b){ return a.localeCompare(b, 'ru'); });
 
@@ -840,6 +981,7 @@ function loadSchedule() {
           ? 'преподавателя'
           : 'преподавателей';
       document.getElementById('headerPeriod').textContent =
+        (weekRange ? 'неделя ' + weekRange + ' · ' : '') +
         '1–4 курс · ' + loadedTeachers.length + ' ' + teacherWord + ' · данные из Google Таблиц' +
         (sheets.length < SHEET_NAMES.length ? ' · часть листов недоступна' : '');
 
@@ -937,6 +1079,27 @@ function renderDays(items) {
   }).join('');
 }
 
+function renderTeacherList() {
+  var panel = document.getElementById('teacherPanel');
+  var list = document.getElementById('teacherList');
+  if (!panel || !list) return;
+  if (!loadedTeachers.length) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+  var count = document.getElementById('teacherCount');
+  if (count) count.textContent = loadedTeachers.length + ' чел.';
+  list.innerHTML = loadedTeachers.map(function(name) {
+    var lessons = teacherCounts[name] || 0;
+    var active = name === activeTab ? ' is-active' : '';
+    return '<button class="teacher-chip' + active + '" type="button" data-teacher="'
+      + name.replace(/"/g, '&quot;') + '" onclick="useTeacher(this.dataset.teacher)" title="'
+      + name + ' · ' + lessons + ' пар">'
+      + name + '<small>' + lessons + '</small></button>';
+  }).join('');
+}
+
 function renderTabs() {
   var el = document.getElementById('tabs');
   el.innerHTML = activeTeachers.map(function(name) {
@@ -948,6 +1111,7 @@ function renderTabs() {
       + '" data-teacher="' + name.replace(/"/g,'&quot;') + '" onclick="selectTab(this.dataset.teacher)">'
       + name.replace(/"/g,'&quot;') + removeBtn + '</button>';
   }).join('');
+  renderTeacherList();
 }
 
 function renderContent() {
