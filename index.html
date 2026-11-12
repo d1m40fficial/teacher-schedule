@@ -750,6 +750,9 @@ function parseDayAndDate(cellA) {
   var day = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
   var date = parts.length > 1 ? parts.slice(1).join(' ').trim() : '—';
   if (DAY_ORDER[day] === undefined) return [null, null];
+  // «14.11.2026» и «14.11» — одна и та же дата.
+  var m = date.match(/^(\d{2})\.(\d{2})(?:\.\d{4})?$/);
+  if (m) date = m[1] + '.' + m[2];
   return [day, date || '—'];
 }
 
@@ -806,6 +809,18 @@ function headerRow(data) {
   return 0;
 }
 
+// Строка преподавателя идёт сразу после строки с номером пары, но между парами
+// её может не быть (пустые пары 4/5/6 идут подряд). Поэтому следующую строку
+// берём только если она не является ни новой парой, ни заголовком дня.
+function teacherRowFor(data, r) {
+  var next = data[r + 1];
+  if (!next) return null;
+  var nextPair = (next[1] === undefined ? '' : next[1] + '').trim();
+  if (/^\d+$/.test(nextPair)) return null;
+  if (parseDayAndDate(next[0] === undefined ? '' : next[0])[0]) return null;
+  return next;
+}
+
 // Собираем словарь предметов и фамилий (по записям с инициалами), чтобы
 // отличить преподавателя от темы занятия в однословных ячейках.
 function collectVocabulary(data, subjects, surnames) {
@@ -816,14 +831,14 @@ function collectVocabulary(data, subjects, surnames) {
     var row = data[r] || [];
     var pairRaw = (row[1] === undefined ? '' : row[1] + '').trim();
     if (!/^\d+$/.test(pairRaw)) continue;
-    var teacherRow = data[r + 1] || [];
+    var teacherRow = teacherRowFor(data, r) || [];
     groups.forEach(function(gb) {
       var subject = getFirstNonempty(row, gb.subjectCols)[0];
       if (subject) subjects[norm(subject)] = true;
       var info = teacherInfo(getFirstNonempty(teacherRow, gb.teacherCols)[0]);
       if (info && info.hasInitials) surnames[info.surname.toLowerCase()] = true;
     });
-    r += 1;
+    if (teacherRow.length) r += 1;
   }
 }
 
@@ -853,7 +868,7 @@ function buildFullSchedule(data, course, subjects, surnames) {
     if (!currentDay || !/^\d+$/.test(pairRaw)) continue;
 
     var pairNum = parseInt(pairRaw, 10);
-    var teacherRow = data[r + 1] || [];
+    var teacherRow = teacherRowFor(data, r) || [];
 
     groups.forEach(function(gb) {
       var subject = getFirstNonempty(row, gb.subjectCols)[0];
@@ -879,7 +894,7 @@ function buildFullSchedule(data, course, subjects, surnames) {
       if (!seen[key]) { seen[key] = true; results.push(item); }
     });
 
-    r += 1;
+    if (teacherRow.length) r += 1;
   }
 
   return results;
