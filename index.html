@@ -858,10 +858,11 @@ function buildFullSchedule(data, course, subjects, surnames) {
   for (var r = 0; r < data.length; r++) {
     var row = data[r] || [];
     var parsed = parseDayAndDate(row[0] === undefined ? '' : row[0]);
+    // Заголовок дня может стоять в одной строке с первой парой — не выходим,
+    // иначе пара №1 теряется.
     if (parsed[0]) {
       currentDay = parsed[0];
       currentDate = parsed[1] || '—';
-      continue;
     }
 
     var pairRaw = (row[1] === undefined ? '' : row[1] + '').trim();
