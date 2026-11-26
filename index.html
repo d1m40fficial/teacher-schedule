@@ -772,23 +772,56 @@ function parseCabinet(value, subject) {
 }
 
 function buildGroupMap(header) {
-  var groups = [];
-  var c = 2, n = header.length;
-  while (c < n) {
-    var cell = (header[c]||'').trim();
-    if (cell) {
-      var cab = (c+3 < n) ? c+3 : null;
-      var label = cell;
-      if (label.indexOf('Расписание занятий') === 0) {
-        var tail = label.trim().split(/\s+/).pop();
-        if (tail) label = tail;
-      }
-      groups.push({ group: label, subjectCols: [c,c+1,c+2],
-        teacherCols: (cab!==null ? [c,c+1,c+2,cab] : [c,c+1,c+2]), cabCol: cab });
-      c += 4;
-    } else {
-      c += 1;
+  var n = header.length;
+  var cells = [];
+  for (var i = 0; i < n; i++) cells[i] = (header[i] || '').trim();
+
+  var cabs = [];
+  for (var c = 2; c < n; c++) {
+    var key = norm(cells[c]).replace(/\./g, '');
+    if (key === 'каб' || key === 'кабинет') cabs.push(c);
+  }
+
+  function labelFor(start, end, fallback) {
+    for (var c = start; c < end; c++) {
+      if (cells[c]) return cleanLabel(cells[c]);
     }
+    return cleanLabel(fallback || '');
+  }
+  function cleanLabel(value) {
+    var label = (value || '').trim();
+    if (label.indexOf('Расписание занятий') === 0) {
+      var tail = label.split(/\s+/).pop();
+      if (tail) label = tail;
+    }
+    return label;
+  }
+  function makeGroup(label, subjectCols, cab) {
+    var teacherCols = subjectCols.slice();
+    if (cab !== null) teacherCols.push(cab);
+    return { group: label, subjectCols: subjectCols, teacherCols: teacherCols, cabCol: cab };
+  }
+
+  var groups = [];
+  // Колонки «каб» задают границы групп: всё между предыдущей «каб» и этой —
+  // предметы одной группы. Метка группы может стоять со сдвигом внутри блока.
+  var prevEnd = 2;
+  cabs.forEach(function(cab) {
+    var start = prevEnd;
+    if (cab > start) {
+      var subjectCols = [];
+      for (var c = start; c < cab; c++) subjectCols.push(c);
+      groups.push(makeGroup(labelFor(start, cab, ''), subjectCols, cab));
+    }
+    prevEnd = cab + 1;
+  });
+
+  // Хвост шапки без «каб» — прежняя сетка 3 + 1.
+  for (var c = prevEnd; c < n; c++) {
+    if (!cells[c]) continue;
+    var cab = (c + 3 < n) ? c + 3 : null;
+    groups.push(makeGroup(cleanLabel(cells[c]), [c, c + 1, c + 2], cab));
+    c += 3;
   }
   return groups;
 }
@@ -799,6 +832,19 @@ function getFirstNonempty(row, cols) {
     if (c < row.length && row[c] && (row[c]+'').trim()) return [(row[c]+'').trim(), c];
   }
   return ['', null];
+}
+
+// В таблицу иногда попадают строки пар без номера в колонке «№»:
+// например, весь вторник у 3 курса. Номер тогда восстанавливается по порядку,
+// а предметом считаем ячейку, которая не похожа на фамилию преподавателя.
+function subjectCell(row, groups) {
+  for (var i = 0; i < groups.length; i++) {
+    var value = getFirstNonempty(row, groups[i].subjectCols)[0];
+    if (!value) continue;
+    if (teacherInfo(value)) continue;
+    return value;
+  }
+  return '';
 }
 
 function headerRow(data) {
@@ -827,10 +873,24 @@ function collectVocabulary(data, subjects, surnames) {
   var header = data[headerRow(data)] || [];
   var groups = buildGroupMap(header);
   if (!groups.length) return;
+  var currentDay = null;
+  var lastPair = 0;
   for (var r = 0; r < data.length; r++) {
     var row = data[r] || [];
+    var parsed = parseDayAndDate(row[0] === undefined ? '' : row[0]);
+    if (parsed[0]) {
+      currentDay = parsed[0];
+      lastPair = 0;
+    }
+    if (!currentDay) continue;
     var pairRaw = (row[1] === undefined ? '' : row[1] + '').trim();
-    if (!/^\d+$/.test(pairRaw)) continue;
+    if (/^\d+$/.test(pairRaw)) {
+      lastPair = parseInt(pairRaw, 10);
+    } else if (subjectCell(row, groups)) {
+      lastPair += 1;
+    } else {
+      continue;
+    }
     var teacherRow = teacherRowFor(data, r) || [];
     groups.forEach(function(gb) {
       var subject = getFirstNonempty(row, gb.subjectCols)[0];
@@ -854,6 +914,7 @@ function buildFullSchedule(data, course, subjects, surnames) {
   var seen = {};
   var currentDay = null;
   var currentDate = '—';
+  var lastPair = 0;
 
   for (var r = 0; r < data.length; r++) {
     var row = data[r] || [];
@@ -863,12 +924,24 @@ function buildFullSchedule(data, course, subjects, surnames) {
     if (parsed[0]) {
       currentDay = parsed[0];
       currentDate = parsed[1] || '—';
+      lastPair = 0;
     }
 
     var pairRaw = (row[1] === undefined ? '' : row[1] + '').trim();
-    if (!currentDay || !/^\d+$/.test(pairRaw)) continue;
+    if (!currentDay) continue;
 
-    var pairNum = parseInt(pairRaw, 10);
+    var pairNum;
+    if (/^\d+$/.test(pairRaw)) {
+      pairNum = parseInt(pairRaw, 10);
+      lastPair = pairNum;
+    } else if (subjectCell(row, groups)) {
+      // Номера пар в таблице могут быть потеряны — нумеруем по порядку.
+      pairNum = lastPair + 1;
+      lastPair = pairNum;
+    } else {
+      continue;
+    }
+
     var teacherRow = teacherRowFor(data, r) || [];
 
     groups.forEach(function(gb) {
